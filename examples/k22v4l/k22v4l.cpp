@@ -38,9 +38,9 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#define VIDEO_DEVICE_RGB "/dev/video0"
-#define VIDEO_DEVICE_IR "/dev/video1"
-#define VIDEO_DEVICE_DEPTH "/dev/video2"
+#define VIDEO_DEVICE_RGB "/dev/video3"
+#define VIDEO_DEVICE_IR "/dev/video4"
+#define VIDEO_DEVICE_DEPTH "/dev/video5"
 
 bool k22v4l_shutdown = false;
 
