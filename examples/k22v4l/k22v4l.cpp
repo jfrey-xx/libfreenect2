@@ -134,10 +134,16 @@ int main(int argc, char *argv[])
   vid_format_ir.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
   vid_format_ir.fmt.pix.width = ir->width;
   vid_format_ir.fmt.pix.height = ir->height;
-  vid_format_ir.fmt.pix.pixelformat = V4L2_PIX_FMT_Y16; // black and white 16bits
+  /*vid_format_ir.fmt.pix.pixelformat = V4L2_PIX_FMT_Y16; // black and white 16bits
   vid_format_ir.fmt.pix.sizeimage = ir->width * ir->height * 2;
   vid_format_ir.fmt.pix.field = V4L2_FIELD_NONE;
-  vid_format_ir.fmt.pix.bytesperline = rgb->width * 2;
+  vid_format_ir.fmt.pix.bytesperline = rgb->width * 2; */
+  
+  vid_format_ir.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24; // colors
+  vid_format_ir.fmt.pix.sizeimage =  rgb->width * rgb->height * 3;
+  vid_format_ir.fmt.pix.field = V4L2_FIELD_NONE;
+  vid_format_ir.fmt.pix.bytesperline = rgb->width * 3;
+  
   vid_format_ir.fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
   ret_code = ioctl(fd_ir, VIDIOC_S_FMT, &vid_format_ir);
   assert(ret_code != -1);
@@ -159,7 +165,7 @@ int main(int argc, char *argv[])
   std::cout << "start loop" << std::endl;
   
   // use opencv to confert pixel format (float to int), need some matrix
-  cv::Mat mat_ir, tmp_ir;
+  cv::Mat mat_ir, tmp_ir, tmp_ir_rgb;
   cv::Mat mat_depth, tmp_depth;
   
   // dummy image for dummy frame
@@ -175,11 +181,18 @@ int main(int argc, char *argv[])
 
     // could write directly RGB image as it's 3xint8
     ret_code = write(fd_rgb, rgb->data, rgb->width * rgb->height * 3);
+
     
-    // IR: use a matrix to convert from float32 to int16 and normalize data to adjust brightness
-    mat_ir = cv::Mat(ir->height, ir->width, CV_32FC1, ir->data) ; 
-    cv::normalize(mat_ir, tmp_ir, 0, 255*255, cv::NORM_MINMAX, CV_16UC1); // 255*255 for color depth...
-    ret_code = write(fd_ir, tmp_ir.data, ir->width * ir->height * 2);
+    // IR: use a matrix to convert from float32 to int16
+    mat_ir = cv::Mat(ir->height, ir->width, CV_32FC1, ir->data) ;
+    //normalize data to adjust brightness
+    //cv::normalize(mat_ir, tmp_ir, 0, 255*255, cv::NORM_MINMAX, CV_16UC1); // 255*255 for color depth...
+    //ret_code = write(fd_ir, tmp_ir.data, ir->width * ir->height * 2);
+    
+    // convert to fake RGB to ease post-processing
+    cv::normalize(mat_ir, tmp_ir, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    cv::cvtColor(tmp_ir, tmp_ir_rgb, CV_GRAY2RGB);
+    ret_code = write(fd_ir, tmp_ir_rgb.data, ir->width * ir->height*3);
     
     // same with depth
     mat_depth = cv::Mat(depth->height, depth->width, CV_32FC1, depth->data) ; 
