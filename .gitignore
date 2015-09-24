@@ -1,8 +1,15 @@
 # generated config file
-examples/protonect/include/libfreenect2/config.h
+examples/*/include/libfreenect2/config.h
 
 # generated resource file
-examples/protonect/src/resources.inc
+examples/*/src/resources.inc
+
+*.dir
+lib/
+CMakeFiles
+CMakeCache.txt
+Makefile
+*.cmake
 
 # Dependency folders
 depends/*/
